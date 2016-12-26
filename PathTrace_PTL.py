@@ -17,7 +17,16 @@ for character in data_notags:
 		nopunct.append(character)
 data_notags_nopunct = ("".join(nopunct))
 
+	punct_list = [",",".","-","!","?",":", "(", ")"] 
+	nopunct = [] 
+	for character in data_notags: 
+		if character in punct_list: 
+			character = ""
+		else: 
+			nopunct.append(character)
+	data_notags_nopunct = ("".join(nopunct))
 
 double_spacing = re.compile(r"\s+ | \n+")
 data_notags_nopunct_nospace = double_spacing.sub(" ", data_notags_nopunct)
 print(data_notags_nopunct_nospace)
+"""print(clean_xml("Guiltless_49v50.xml"))"""
