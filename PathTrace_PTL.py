@@ -31,5 +31,5 @@ def clean_xml(filename):
 collation = Collation() # tell the collation library to create a new instance by saying Collation()
 collation.add_plain_witness("A", clean_xml("Guiltless_49v50.xml"))
 collation.add_plain_witness("B", clean_xml("Guiltless_53v54.xml"))
-alignment_table = collate(collation, layout='vertical', segmentation=False)
+alignment_table = collate(collation, layout='vertical')
 print( alignment_table)
