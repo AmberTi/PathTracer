@@ -38,6 +38,15 @@ collation.add_plain_witness("C", open("ch7_l30.txt", "r").read())
 """allignment_table = collate(collation, layout='vertical')
 print(allignment_table)"""
 
+"""LOW-FREQ WORDSEARCH"""
+text = clean_xml("Guiltless_49v50.xml").lower().split()
+word_freqs = {}
+for word in text:
+    if word in word_freqs:
+        word_freqs[word] += 1
+    else:
+        word_freqs[word] = 1
+print(word_freqs)
 
 
 
