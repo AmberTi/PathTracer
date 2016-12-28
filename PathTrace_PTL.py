@@ -1,6 +1,7 @@
 import string
 import re
 from collatex import * 
+from collections import Counter
 
 """CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS DELETED)"""
 
@@ -39,14 +40,15 @@ collation.add_plain_witness("C", open("ch7_l30.txt", "r").read())
 print(allignment_table)"""
 
 """LOW-FREQ WORDSEARCH"""
+lowfreqword_list = []
 text = clean_xml("Guiltless_49v50.xml").lower().split()
-word_freqs = {}
-for word in text:
-    if word in word_freqs:
-        word_freqs[word] += 1
-    else:
-        word_freqs[word] = 1
-print(word_freqs)
+wordcount = Counter(text)
+"""print(wordcount)"""
+for word in wordcount:
+	if wordcount[word] == 1:
+		lowfreqword_list.append(word)
+print(lowfreqword_list)
+
 
 
 
