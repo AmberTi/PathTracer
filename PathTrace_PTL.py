@@ -2,11 +2,16 @@ import string
 import re
 from collatex import * 
 
+"""CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS DELETED)"""
+
 def clean_xml(filename):
 	f = open(filename,"r")
 	dirty_data = f.read()
-	tags = re.compile(r"<[^>]*>")
-	notags = tags.sub("", dirty_data) #still dirty
+	deltag = re.compile(r"<del type=[^>]*>([^<]*?)</del>")
+	no_deletion = deltag.sub("", dirty_data) #deleting all deletion tags, and everything in between open & close tag. 
+
+	tags = re.compile(r"<[^>]*>") #deleting (only) tags, remaining: everything in between tags. 
+	notags = tags.sub("", no_deletion) #still dirty
 	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
 	data_notags = dirt.sub("", notags)
 
@@ -24,12 +29,236 @@ def clean_xml(filename):
 	data = data_notags_nopunct_nospace
 	return(data)
 
-"""print(clean_xml("Guiltless_49v50.xml"))"""
-
-
 """COLLATION"""
-collation = Collation() # tell the collation library to create a new instance by saying Collation()
+
+collation = Collation()
 collation.add_plain_witness("A", clean_xml("Guiltless_49v50.xml"))
 collation.add_plain_witness("B", clean_xml("Guiltless_53v54.xml"))
-alignment_table = collate(collation, layout='vertical')
-print( alignment_table)
+collation.add_plain_witness("C", open("ch7_l30.txt", "r").read())
+"""allignment_table = collate(collation, layout='vertical')
+print(allignment_table)"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
