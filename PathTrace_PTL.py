@@ -56,11 +56,20 @@ for lfword in lowfreqword_list:
 	if lfword in clean_xml("Guiltless_53v54.xml").split():#if word in second witness 
 		matchwords.append(lfword)
 
-matchword_index = []
+matchword_indices = []
 for matchword in matchwords:
 	if matchword in clean_xml("Guiltless_53v54.xml").split():
-		matchword_index.append(clean_xml("Guiltless_53v54.xml").split().index(matchword))
-print(matchword_index) #double checking matchwords
+		matchword_indices.append(clean_xml("Guiltless_53v54.xml").split().index(matchword))
+"""print(matchword_indices)""" #double checking matchwords
+witness_list = clean_xml("Guiltless_53v54.xml").split()
+matchsentences = []
+for index in matchword_indices:
+	matchsentence = ((witness_list[(index-10):(index)+10]))
+	matchsentences.append(" ".join(matchsentence))
+
+for sentence in matchsentences:
+	print(sentence)
+
 
 
 
