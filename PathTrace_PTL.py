@@ -44,14 +44,30 @@ lowfreqword_list = []
 text = clean_xml("Guiltless_49v50.xml").lower().split()
 wordcount = Counter(text)
 """print(wordcount)"""
+
 for word in wordcount:
 	if wordcount[word] == 1:
 		lowfreqword_list.append(word)
+
 print(lowfreqword_list)
 
+matchwords = []	
+for lfword in lowfreqword_list:
+	if lfword in clean_xml("Guiltless_53v54.xml"):#if word in second witness 
+		matchwords.append(lfword)
+
+print(matchwords) #double checking matchwords 
 
 
+for matchword in matchwords:
+	matchword_index = clean_xml("Guiltless_53v54.xml").split().index(matchword)
+	print(matchword_index) #double checking matchwords
 
+
+"""clean_xml("Guiltless_53v54.xml"):
+	matchword_index = matchwords.index(word)
+	print(matchword_index)
+	"""
 
 
 
