@@ -2,9 +2,10 @@ import string
 import re
 from collatex import * 
 from collections import Counter
+import os
 
-"""CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS DELETED)"""
 
+"""CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS MARKED AS DELETED)"""
 def clean_xml(filename):
 	f = open(filename,"r")
 	dirty_data = f.read()
@@ -30,46 +31,70 @@ def clean_xml(filename):
 	data = data_notags_nopunct_nospace
 	return(data)
 
-"""COLLATION"""
+def collate_files(fileList):
+	alphabet = string.ascii_uppercase #list aplhabet capitalized
+	i = 0
+	collation = Collation()
+	if fileList[1]: #min 2 files in fileList
+		for file in fileList:
+			if file.endswith(".xml"):
+				collation.add_plain_witness(alphabet[i], clean_xml(file))
+			else:
+				collation.add_plain_witness(alphabet[i], open(file, "r").read())
+			i += 1
+		allignment_table = collate(collation, layout='vertical')
+		return(allignment_table)
+	else:
+		raise IOError('At least 2 files needed for collation!')
 
-collation = Collation()
-collation.add_plain_witness("A", clean_xml("Guiltless_49v50.xml"))
-collation.add_plain_witness("B", clean_xml("Guiltless_53v54.xml"))
-collation.add_plain_witness("C", open("ch7_l30.txt", "r").read())
-"""allignment_table = collate(collation, layout='vertical')
-print(allignment_table)"""
+file1 = "Guiltless_49v50.xml"
+file2 = "Guiltless_53v54.xml"
+file3 = "ch7_l30.txt"
+listOfFiles = [file1, file2, file3]
+"""collate_files(listOfFiles)"""
 
-"""LOW-FREQ WORDSEARCH"""
-lowfreqword_list = []
-text = clean_xml("Guiltless_49v50.xml").lower().split()
-wordcount = Counter(text)
-"""print(wordcount)"""
+def lowfreq_matchwords(file1, file2): #finds lowfrequency words from one witness, that occur in complete second witness
+	lowfreqword_list = []
+	if file1.endswith(".xml"):
+		text = clean_xml(file1).lower().split()
+	else:
+		text = open(file1, "r").read().lower().split()
+	wordcount = Counter(text)
+	return wordcount
+	
+	for word in wordcount:
+		if wordcount[word] == 1:
+			lowfreqword_list.append(word)
+	"""print(lowfreqword_list)"""
+	
+	matchwords = []	
+	for lfword in lowfreqword_list:
+		for file in fileList:
+			if file2.endswith(".xml"):
+				text = clean_xml(file2).lower().split()
+			else:
+				text = open(file2, "r").read().lower().split()
+		if lfword in text:#if word in second witness 
+			matchwords.append(lfword)
+	return matchwords
 
-for word in wordcount:
-	if wordcount[word] == 1:
-		lowfreqword_list.append(word)
+file1 = "Guiltless_49v50.xml"
+file2 = "Guiltless_53v54.xml"
+print(lowfreq_matchwords(file1, file2))
 
-"""print(lowfreqword_list)"""
-
-matchwords = []	
-for lfword in lowfreqword_list:
-	if lfword in clean_xml("Guiltless_53v54.xml").split():#if word in second witness 
-		matchwords.append(lfword)
-
-matchword_indices = []
+"""matchword_indices = []
 for matchword in matchwords:
 	if matchword in clean_xml("Guiltless_53v54.xml").split():
-		matchword_indices.append(clean_xml("Guiltless_53v54.xml").split().index(matchword))
+		matchword_indices.append(clean_xml("Guiltless_53v54.xml").split().index(matchword))"""
 """print(matchword_indices)""" #double checking matchwords
-witness_list = clean_xml("Guiltless_53v54.xml").split()
+"""witnesslist = [clean_xml("Guiltless_49v50.xml").split() , clean_xml("Guiltless_53v54.xml").split()]
 matchsentences = []
-for index in matchword_indices:
-	matchsentence = list(witness_list[(index-10):(index)]) + list(("<<<").split()) + list(witness_list[index].split()) + list((">>>").split()) + list(witness_list[(index+1):(index+11)])
-	matchsentences.append(" ".join(matchsentence))
-	print(matchsentences)
-for sentence in matchsentences:
-	print("Matchword_sequence: ",sentence)
-
+for witness in witnesslist:
+	for index in matchword_indices:
+		matchsentence = list(witness[(index-10):(index)]) + list(("<<<").split()) + list(witness[index].split()) + list((">>>").split()) + list(witness[(index+1):(index+11)])
+		matchsentences.append(" ".join(matchsentence))"""
+"""for sentence in matchsentences:
+	print("Sequence matchword in Witness", witnesslist.index(witness)+1 ,sentence)"""
 
 
 
