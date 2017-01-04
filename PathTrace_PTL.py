@@ -31,6 +31,15 @@ def clean_xml(filename):
 	data = data_notags_nopunct_nospace
 	return(data)
 
+def retrieve_text(file):
+	if file.endswith(".xml"):
+		text = clean_xml(file)
+	else:
+		text = open(file, "r").read()
+	return text
+
+"""print(retrieve_text("ch7_l30.txt"))"""
+
 def collate_files(fileList):
 	alphabet = string.ascii_uppercase #list aplhabet capitalized
 	i = 0
@@ -38,488 +47,59 @@ def collate_files(fileList):
 	if fileList[1]: #min 2 files in fileList
 		for file in fileList:
 			if file.endswith(".xml"):
-				collation.add_plain_witness(alphabet[i], clean_xml(file))
+				collation.add_plain_witness(alphabet[i], retrieve_text(file))
 			else:
-				collation.add_plain_witness(alphabet[i], open(file, "r").read())
+				collation.add_plain_witness(alphabet[i], retrieve_text(file))
 			i += 1
 		allignment_table = collate(collation, layout='vertical')
 		return(allignment_table)
 	else:
 		raise IOError('At least 2 files needed for collation!')
 
-file1 = "Guiltless_49v50.xml"
+"""file1 = "Guiltless_49v50.xml"
 file2 = "Guiltless_53v54.xml"
 file3 = "ch7_l30.txt"
 listOfFiles = [file1, file2, file3]
-"""collate_files(listOfFiles)"""
+print(collate_files(listOfFiles))"""
 
-def lowfreq_matchwords(file1, file2): #finds lowfrequency words from one witness, that occur in complete second witness
+def lowfreq_matchwords(fileList): #finds lowfrequency words from one witness, that occur in complete second witness
 	lowfreqword_list = []
-	if file1.endswith(".xml"):
-		text = clean_xml(file1).lower().split()
-	else:
-		text = open(file1, "r").read().lower().split()
+	text = retrieve_text(fileList[0]).split()
 	wordcount = Counter(text)
-	return wordcount
-	
 	for word in wordcount:
 		if wordcount[word] == 1:
 			lowfreqword_list.append(word)
 	"""print(lowfreqword_list)"""
 	
 	matchwords = []	
-	for lfword in lowfreqword_list:
-		for file in fileList:
-			if file2.endswith(".xml"):
-				text = clean_xml(file2).lower().split()
-			else:
-				text = open(file2, "r").read().lower().split()
+	if fileList[1].endswith(".xml"):
+			text = clean_xml(fileList[1]).lower().split()
+	else:
+		text = open(fileList[1], "r").read().lower().split()
+	for lfword in lowfreqword_list:	
 		if lfword in text:#if word in second witness 
 			matchwords.append(lfword)
 	return matchwords
 
 file1 = "Guiltless_49v50.xml"
 file2 = "Guiltless_53v54.xml"
-print(lowfreq_matchwords(file1, file2))
-
-"""matchword_indices = []
-for matchword in matchwords:
-	if matchword in clean_xml("Guiltless_53v54.xml").split():
-		matchword_indices.append(clean_xml("Guiltless_53v54.xml").split().index(matchword))"""
-"""print(matchword_indices)""" #double checking matchwords
-"""witnesslist = [clean_xml("Guiltless_49v50.xml").split() , clean_xml("Guiltless_53v54.xml").split()]
-matchsentences = []
-for witness in witnesslist:
-	for index in matchword_indices:
-		matchsentence = list(witness[(index-10):(index)]) + list(("<<<").split()) + list(witness[index].split()) + list((">>>").split()) + list(witness[(index+1):(index+11)])
-		matchsentences.append(" ".join(matchsentence))"""
-"""for sentence in matchsentences:
-	print("Sequence matchword in Witness", witnesslist.index(witness)+1 ,sentence)"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+"""print(lowfreq_matchwords([file1, file2]))"""
+
+def print_matchsequences(fileList):
+	matchword_indices = []
+	matchsequences = []
+	i = 0
+	for textfile in fileList:
+		textfile = retrieve_text(fileList[i]).split()
+		for matchword in lowfreq_matchwords(fileList):
+			matchword_indices.append(textfile.index(matchword))
+		for index in matchword_indices:
+			matchsequence = list(textfile[(index-10):(index)]) + list('<') + list(textfile[index].split()) + list('>') +list(textfile[(index+1):(index+11)])
+			#matchsequences.append("Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence)))
+			print("Sequence matchword in " + fileList[i] + ": " + (" ".join(matchsequence)))
+		i += 1
+ 
+
+file1 = "Guiltless_49v50.xml"
+file2 = "Guiltless_53v54.xml"
+print_matchsequences([file1, file2])
