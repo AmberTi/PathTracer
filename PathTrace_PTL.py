@@ -89,19 +89,6 @@ def lowfreq_words(file):
 
 #print(lowfreq_words(file1))
 
-"""def lowfreq_words(fileList): #finds lowfrequency words from THE FIRST witness, that occur in complete second witness
-	lowfreqword_list = []
-	for file in fileList:
-		
-	freq_dict_fileList = freq_dict(fileList)
-	for word in freq_dict_fileList[0][1]:
-		if freq_dict_fileList[0][1][word] == 1:
-			lowfreqword_list.append(word)
-	lowfreq_words = set(lowfreqword_list)
-	return lowfreq_words"""
-
-
-
 def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2 ? 
 	lowfreqwords = lowfreq_words(fileList[0])
 
@@ -148,7 +135,6 @@ def match_sequences(fileList):
 		#"Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence))
 		print("MATCHSEQUENCE " , matchsequences)
 
-
 #print for each witness the "sentence" in which the matchword (lowfreq_matchword) occurs. Result: for each matchword 2 sequences.
 def print_matchsequences(fileList):
 	matchsequences = [] #The list in which we will be placing the "sentences" of both files
@@ -171,72 +157,39 @@ def print_matchsequences(fileList):
 			currMatchsequence.append(" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
 		matchsequences.append(currMatchsequence) #after 2 iterations, this list will contain 2 lists with the matchsequences of both files.
 	#print(matchsequences)
-
 	i = 0
 	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
 		print(matchsequences[0][i] + " | " + matchsequences[1][i])
 		i += 1
-
-
-	'''for index in matchword_indices:
-								if index < 10:
-									index = 0
-								elif index+10 > len(text):
-									index = len(text)-1'''
-		#print(index)
-		#matchsequence = list(text[(index-10):(index)]) + list('<') + list(text[index].split()) + list('>') +list(text[(index+1):(index+11)])
-		#(not needed) matchsequences.append("Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence)))
-		#print("Sequence matchword in " + file + ": " + (" ".join(matchsequence)))
-print_matchsequences(fileList)
+#print_matchsequences(fileList)
 		
-""" file in fileList:
-i += 1
-index = match[1][i][1]
-matchsequence = list((retrieve_text(file).split())[index-10:index]) + list('<') + list((retrieve_text(file).split())[index]) + list('>') + list((retrieve_text(file).split())[(index+1):(index+11)])
-print(matchsequence)
-print("_________________________________________________________")
-matchsequences.append(" ".join(matchsequence))
-#"Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence))
-print("MATCHSEQUENCE " , matchsequences)"""
-
-"""for lst in matchword_indices:
-			index = lst[1]
-			if index-10 < 0:
-				index = 0
-			elif index+10 > len(textfile):
-				index = len(textfile)-1
-			matchsequence = list(textfile[(index-10):(index)]) + list('<') + list(textfile[index].split()) + list('>') +list(textfile[(index+1):(index+11)])
-			matchsequences.append("Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence)))
-		for matchseq in matchsequences:
-			print(matchseq)
-			i += 1"""
-
 file1 = "Guiltless_49v50.xml"
 file2 = "ch7_l30.txt"
-fileList = [file1, file2]
+file3 = "Guiltless_53v54.xml"
+fileList = [file1, file2, file3]
 #print(match_sequences(fileList))
 
 
-def index_matchword_dict (fileList):
-	i = 0
-	dict_idx_matchword_w1 = {}
-	dict_idx_matchword_w2 = {}
-	dict_list = [dict_idx_matchword_w1, dict_idx_matchword_w2]
-	matchwords = lowfreq_matchwords(fileList)
+def find_word_in_files (input_word, fileList):
+	found = False #when at least 1 word has been found, this will be set to true
 	for file in fileList:
-		for matchword in matchwords:
-			#matchword_index = (retrieve_text(file).index(matchword)) 
-			dict_list[i][retrieve_text(file).index(matchword)] = matchword
-		i += 1
-			#matchword_dict[matchword_indices.append(textfile.index(matchword))] = matchword
-	#return("index & corresp matchword in ", fileList[0], dict_list[0] , "index & corresp matchword in ", fileList[1], dict_list[1])
-	return dict_list
+		text = retrieve_text(file).split() #split because if string, might match on half words etc.
+		index = 0 #to get the index of the current word
+		for word in text:
+			if word == input_word:
+				found = True
+				if index < 5:
+					limiter = 5
+				elif index+6 >= len(text):
+					limiter = len(text)-7
+				else:
+					limiter = index
+				input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
+				#input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
+				print ("Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence)
+			index += 1
+	if not found:
+		#I used + (concatenation) instead of , here so there wouldn't be any spaces around the input_word
+		print("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file)
 
-
-file1 = "Guiltless_49v50.xml"
-file2 = "Guiltless_53v54.xml"
-fileList = [file1, file2]
-
-
-
-"""[list(fileList[i][(start_seqindex):(key)]) + list('<') + list(fileList[i][key].split()) + list('>') +list(fileList[i][(key+1):(key+11)])]"""
+print(find_word_in_files("Shem", fileList))
