@@ -5,6 +5,12 @@ from collections import Counter
 import os
 from operator import itemgetter
 
+#lijn 2-4 = scherm leegmaken/opkuisen. de functie cls() kan overal oproepen worden om het scherm opnieuw leeg te maken, 
+#handig om een rommelig scherm te vermijden. helpt met indruk van een GUI te geven
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
+
 """CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS MARKED AS DELETED)"""
 def clean_xml(filename):
 	f = open(filename,"r")
@@ -112,28 +118,6 @@ def match_indices(fileList):
 			matchword_indices.append([matchword, [[fileList[i], (retrieve_text(fileList[i]).split()).index(matchword)],[fileList[i+1], (retrieve_text(fileList[i+1]).split()).index(matchword)]]])
 	return matchword_indices
 #print(match_indices(fileList))
-	
-def match_sequences(fileList):
-	matchsequences = []
-	matchword_indices = match_indices(fileList)
-	for match in matchword_indices:
-		#print(match[0]) #corresponds with first element of eacht matchy-thingy
-		"""file1 = match[1][0][0] #name file -> also in fileList, same order
-								file2 = match[1][1][0] #name file"""
-		index_file1 = match[1][0][1]
-		index_file2 = match[1][1][1]
-		#print(index_file1, index_file2)
-
-	i = -1
-	for match in matchword_indices:
-		for file in fileList:
-			i += 1
-		index = match[1][i][1]
-		matchsequence = list((retrieve_text(file).split())[index-10:index]) + list('<') + list((retrieve_text(file).split())[index]) + list('>') + list((retrieve_text(file).split())[(index+1):(index+11)])
-		print(matchsequence)
-		matchsequences.append(" ".join(matchsequence))
-		#"Sequence matchword in " + fileList[1] + ": " + (" ".join(matchsequence))
-		print("MATCHSEQUENCE " , matchsequences)
 
 #print for each witness the "sentence" in which the matchword (lowfreq_matchword) occurs. Result: for each matchword 2 sequences.
 def print_matchsequences(fileList):
@@ -192,4 +176,95 @@ def find_word_in_files (input_word, fileList):
 		#I used + (concatenation) instead of , here so there wouldn't be any spaces around the input_word
 		print("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file)
 
-print(find_word_in_files("Shem", fileList))
+#function for doing something with del/add tags 
+"""<del type=[^>]*>([^<]*?)</del>
+<add type=[^>]*>([^<]*?)</add>"""
+
+
+#main menu functions below this line
+
+def showCurrentDir():
+	i = 1 #to easily select files
+	fileSelector = [] #list to contain all the local directory's files
+	for file in os.listdir(os.curdir): #returns list of files in current directory
+		print(i, file)
+		fileSelector.append(file)
+		i += 1
+	print("")
+	return(fileSelector)
+
+def filePicker(maxFiles):
+	if not maxFiles == 0:
+		print("Choose", maxFiles, "files:\n")
+		fileSelector = showCurrentDir()
+
+		fileList = []
+		while len(fileList) < maxFiles:
+			item = input("> ")
+			fileList.append(fileSelector[int(item)-1])
+
+		print(fileList)
+		return(fileList)
+
+	else:
+		print("Choose as many files as you'd like and end with a return:")
+		fileSelector = showCurrentDir()
+
+		fileList = []
+		item = input("> ") #for first iteration
+		while item: #as long as it's not empty, repeat.
+			fileList.append(fileSelector[int(item)-1])
+			item = input("> ")
+
+		print(fileList)
+		return(fileList)
+
+def menuFunctions(choice):
+	cls()
+
+	if choice == 1: #segment comparison
+		print("Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.")
+		fileList = filePicker(0) #0 because no specific amount of files needed.
+		print(collate_files(fileList))
+
+	elif choice == 2: #low freq comparison
+		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files")
+		fileList = filePicker(2)
+		print_matchsequences(fileList)
+
+	elif choice == 3:
+		print("Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.")
+		input_word = input("Enter word you're looking for: ")
+		fileList = filePicker(0)
+		find_word_in_files (input_word, fileList)
+		
+
+def mainMenu(errorMessage):
+    cls()
+    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.")
+    
+    #als er een errormessage wordt meegegeven aan de functie wordt deze getoond.
+    if errorMessage:
+        print(errorMessage)
+        
+    #hier eventueel nog validatie insteken zodat je enkel nummers kan ingeven en geen letters
+    menu_answer = input("> ")
+    menu_answer = int(menu_answer)
+    
+    if menu_answer == 1:
+        menuFunctions(1)
+    elif menu_answer == 2:
+        menuFunctions(2)
+    elif menu_answer == 3:
+        menuFunctions(3)
+    else:
+        mainMenu("This function does not exist (yet)! Try again.")
+
+    returnToMenu()
+    
+def returnToMenu():
+	input("\nPress return when you want to return to the main menu.")
+	mainMenu("Welcome back.")
+	
+
+mainMenu("")
