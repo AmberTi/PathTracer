@@ -24,13 +24,13 @@ def clean_xml(filename):
 	data_notags = dirt.sub("", notags)
 
 	punct_list = [",",".","-","!","?",":", "(", ")"] 
-	nopunct = [] 
+	punct_split = [] 
 	for character in data_notags: 
 		if character in punct_list: 
-			character = ""
+			punct_split.append(" " + character)
 		else: 
-			nopunct.append(character)
-	data_notags_nopunct = ("".join(nopunct))
+			punct_split.append(character)
+	data_notags_nopunct = ("".join(punct_split))
 
 	double_spacing = re.compile(r"\s+ | \n+")
 	data_notags_nopunct_nospace = double_spacing.sub(" ", data_notags_nopunct)
@@ -41,7 +41,16 @@ def retrieve_text(file): #make text string of text/xml file
 	if file.endswith(".xml"):
 		text = clean_xml(file)
 	else:
-		text = open(file, "r").read()
+		text_punct = open(file, "r").read()
+
+		punct_list = [",",".","-","!","?",":", "(", ")"] 
+		punct_split = [] 
+		for character in text_punct: 
+			if character in punct_list: 
+				punct_split.append(" " + character)
+			else:
+				punct_split.append(character)
+		text = ("".join(punct_split))
 	return text
 """print(retrieve_text("ch7_l30.txt"))"""
 
@@ -67,7 +76,7 @@ file3 = "ch7_l30.txt"
 listOfFiles = [file1, file2, file3]
 print(collate_files(listOfFiles))"""
 
-def sorted_frequencies (fileList): #frequencydict of all files in fileList
+def sorted_frequencies (frequency, fileList): #frequencydict of all files in fileList
 	freq_dict_list = []
 	text = []
 	for file in fileList:
@@ -78,7 +87,8 @@ def sorted_frequencies (fileList): #frequencydict of all files in fileList
 	sorted_freq_list = sorted(Counter(text).items(), key=itemgetter(1), reverse=True)
 
 	for item in sorted_freq_list:
-		print(str(item[0]) + " : " + str(item[1]))
+		if item[1] >= frequency:
+			print(str(item[0]) + " : " + str(item[1]))
 
 file1 = "Guiltless_49v50.xml"
 file2 = "Guiltless_53v54.xml"
@@ -104,10 +114,6 @@ def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2
 		if lfword in text: 
 			matchwords.append(lfword)
 	return matchwords
-
-file1 = "Guiltless_49v50.xml"
-file2 = "Guiltless_53v54.xml"
-fileList = [file1, file2]
 #print(lowfreq_matchwords(fileList))
 
 def match_indices(fileList): 
@@ -122,6 +128,7 @@ def match_indices(fileList):
 #print for each witness the "sentence" in which the matchword (lowfreq_matchword) occurs. Result: for each matchword 2 sequences.
 def print_matchsequences(fileList):
 	matchsequences = [] #The list in which we will be placing the "sentences" of both files
+	prettysequences = []
 	matchwords = lowfreq_matchwords(fileList)
 	for file in fileList:
 		text = retrieve_text(file).split()
@@ -143,25 +150,24 @@ def print_matchsequences(fileList):
 	#print(matchsequences)
 	i = 0
 	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
-		print(matchsequences[0][i] + " | " + matchsequences[1][i])
+		prettysequences.append((matchsequences[0][i] + " | " + matchsequences[1][i]))
 		i += 1
+	return prettysequences
 #print_matchsequences(fileList)
-		
-file1 = "Guiltless_49v50.xml"
-file2 = "ch7_l30.txt"
-file3 = "Guiltless_53v54.xml"
-fileList = [file1, file2, file3]
+
+
 #print(match_sequences(fileList))
 
-
 def find_word_in_files (input_word, fileList):
-	found = False #when at least 1 word has been found, this will be set to true
+	foundInAnyFile = False #when at least 1 word has been found in ANY file, this will be set to true
 	for file in fileList:
+		foundInCurrentFile = False #when at least 1 word has been found in THE CURRENT file, this will be set to true
 		text = retrieve_text(file).split() #split because if string, might match on half words etc.
 		index = 0 #to get the index of the current word
 		for word in text:
 			if word == input_word:
-				found = True
+				foundInAnyFile = True
+				foundInCurrentFile = True
 				if index < 5:
 					limiter = 5
 				elif index+6 >= len(text):
@@ -172,9 +178,11 @@ def find_word_in_files (input_word, fileList):
 				#input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
 				print ("Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence)
 			index += 1
-	if not found:
+		if not foundInCurrentFile:
 		#I used + (concatenation) instead of , here so there wouldn't be any spaces around the input_word
-		print("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file)
+			print("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file)
+	if not foundInAnyFile:
+		print("Sorry, I couldn't find the word(s) in any of the files.")
 
 #function for doing something with del/add tags 
 """<del type=[^>]*>([^<]*?)</del>
@@ -219,29 +227,50 @@ def filePicker(maxFiles):
 		print(fileList)
 		return(fileList)
 
+
+
 def menuFunctions(choice):
 	cls()
 
 	if choice == 1: #segment comparison
-		print("Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.")
+		print("Collate text in two or more files (.xml or .txt) using CollateX.")
 		fileList = filePicker(0) #0 because no specific amount of files needed.
 		print(collate_files(fileList))
+		print("I have saved this table for you in a file called \"collate_collateX.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		f = open('files/collate_collateX.txt', 'wt', encoding='utf-8')
+		f.write(str(collate_files(fileList)))
+		f.close()
 
 	elif choice == 2: #low freq comparison
-		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files")
+		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file.")
 		fileList = filePicker(2)
-		print_matchsequences(fileList)
+		for prettyseq in print_matchsequences(fileList):
+			print(prettyseq)
+		print("\nI have saved these text fragments for you in a file called \"collate_meaningful.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		f = open('files/collate_meaningful.txt', 'wt', encoding='utf-8')
+		for seq in print_matchsequences(fileList):
+			f.write((seq + "\n\n"))
+		f.close()
 
+# http://stackoverflow.com/questions/27261392/returning-every-element-from-a-list-python
 	elif choice == 3:
-		print("Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.")
+		print("Find given word in given file(s).")
 		input_word = input("Enter word you're looking for: ")
+		if input_word == False:
+			input_word == 1
 		fileList = filePicker(0)
 		find_word_in_files (input_word, fileList)
+
+	elif choice == 4:
+		print("Give frequencies of all words (together) in given files.")
+		frequency = int(input("Enter the minimal occurences for a word (min. frequency) here: "))
+		fileList = filePicker(0)
+		print(sorted_frequencies (frequency, fileList))
 		
 
 def mainMenu(errorMessage):
     cls()
-    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.")
+    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give frequencies of all words (together) in given files. \n\tOutput: sorted frequencies")
     
     #als er een errormessage wordt meegegeven aan de functie wordt deze getoond.
     if errorMessage:
@@ -257,6 +286,8 @@ def mainMenu(errorMessage):
         menuFunctions(2)
     elif menu_answer == 3:
         menuFunctions(3)
+    elif menu_answer == 4:
+    	menuFunctions(4)
     else:
         mainMenu("This function does not exist (yet)! Try again.")
 
