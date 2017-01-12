@@ -100,10 +100,9 @@ def lowfreq_words(file):
 	wordcount = Counter(text)
 	for word in wordcount:
 		if wordcount[word] == 1:
-			lowfreqword_list.append(word)
+			if word not in [",",".","-","!","?",":", "(", ")"]: #make sure that no punctuation ends up in the lowfrequency-words list. Should not be problem so long as freq = 1, but if higher might be. 
+				lowfreqword_list.append(word)
 	return lowfreqword_list
-
-#print(lowfreq_words(file1))
 
 def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2 ? 
 	lowfreqwords = lowfreq_words(fileList[0])
@@ -150,7 +149,7 @@ def print_matchsequences(fileList):
 	#print(matchsequences)
 	i = 0
 	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
-		prettysequences.append((matchsequences[0][i] + " | " + matchsequences[1][i]))
+		prettysequences.append((matchsequences[0][i] + "\n" + matchsequences[1][i] + "\n\n")) 
 		i += 1
 	return prettysequences
 #print_matchsequences(fileList)
