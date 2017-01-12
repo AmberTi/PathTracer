@@ -159,6 +159,9 @@ def print_matchsequences(fileList):
 
 def find_word_in_files (input_word, fileList):
 	foundInAnyFile = False #when at least 1 word has been found in ANY file, this will be set to true
+	found = []
+	notfound = []
+	nowhere = []
 	for file in fileList:
 		foundInCurrentFile = False #when at least 1 word has been found in THE CURRENT file, this will be set to true
 		text = retrieve_text(file).split() #split because if string, might match on half words etc.
@@ -174,14 +177,14 @@ def find_word_in_files (input_word, fileList):
 				else:
 					limiter = index
 				input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
-				#input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
-				print ("Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence)
+				found.append(["Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence])
 			index += 1
 		if not foundInCurrentFile:
 		#I used + (concatenation) instead of , here so there wouldn't be any spaces around the input_word
-			print("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file)
+				notfound.append(["Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file])
 	if not foundInAnyFile:
-		print("Sorry, I couldn't find the word(s) in any of the files.")
+		nowhere.append(["Sorry, I couldn't find the word(s) in any of the files." ])
+	return(found, notfound, nowhere)
 
 #function for doing something with del/add tags 
 """<del type=[^>]*>([^<]*?)</del>
@@ -254,11 +257,15 @@ def menuFunctions(choice):
 # http://stackoverflow.com/questions/27261392/returning-every-element-from-a-list-python
 	elif choice == 3:
 		print("Find given word in given file(s).")
+		f = open('files/word_occur.txt', 'wt', encoding='utf-8')
 		input_word = input("Enter word you're looking for: ")
-		if input_word == False:
-			input_word == 1
 		fileList = filePicker(0)
-		find_word_in_files (input_word, fileList)
+		for lst in find_word_in_files (input_word, fileList):
+			for line in lst:
+				print(line)
+				f.write(str(line)+ "\n")
+		print("I have saved the occurences of the word" "\"" , input_word,  "\"" "in a file called \"word_occur.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		f.close()
 
 	elif choice == 4:
 		print("Give frequencies of all words (together) in given files.")
