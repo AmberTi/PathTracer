@@ -138,13 +138,13 @@ def print_matchsequences(fileList):
 		#limiter = het woord waarrond we de zin willen bouwen (bv 5 woorden voor en na de limiter tonen)
 		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first iteration
 		for index in matchword_indices:
-			if index < 5:
-				limiter = 5
-			elif index+6 >= len(text):
-				limiter = len(text)-7
+			if index < 10:
+				limiter = 10
+			elif index+10 >= len(text):
+				limiter = len(text)-11
 			else:
 				limiter = index
-			currMatchsequence.append(" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
+			currMatchsequence.append(" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
 		matchsequences.append(currMatchsequence) #after 2 iterations, this list will contain 2 lists with the matchsequences of both files.
 	#print(matchsequences)
 	i = 0
@@ -170,13 +170,13 @@ def find_word_in_files (input_word, fileList):
 			if word == input_word:
 				foundInAnyFile = True
 				foundInCurrentFile = True
-				if index < 5:
-					limiter = 5
-				elif index+6 >= len(text):
-					limiter = len(text)-7
+				if index < 10:
+					limiter = 10
+				elif index+10 >= len(text):
+					limiter = len(text)-11
 				else:
 					limiter = index
-				input_word_sequence = (" ".join(text[(limiter-5):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+6)]))
+				input_word_sequence = (" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
 				found.append(["Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence])
 			index += 1
 		if not foundInCurrentFile:
