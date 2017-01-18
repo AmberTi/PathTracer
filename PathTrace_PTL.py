@@ -13,15 +13,14 @@ def cls():
 
 """CLEANING XML FILE: NO TAGS,  NOT DELETIONS (REMOVE DEL TAG AND THE ACTUAL WORDS MARKED AS DELETED)"""
 def clean_xml(filename):
-	f = open(filename,"r")
+	f = open(filename,"r", encoding='utf-8')
 	dirty_data = f.read()
 	deltag = re.compile(r"<del type=[^>]*>([^<]*?)</del>")
 	no_deletion = deltag.sub("", dirty_data) #deleting all deletion tags, and everything in between open & close tag. 
-
 	tags = re.compile(r"<[^>]*>") #deleting (only) tags, remaining: everything in between tags. 
 	notags = tags.sub("", no_deletion) #still dirty
 	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
-	data_notags = dirt.sub("", notags)
+	data_notags = dirt.sub(" ", notags)
 
 	punct_list = [",",".","-","!","?",":", "(", ")"] 
 	punct_split = [] 
@@ -30,18 +29,18 @@ def clean_xml(filename):
 			punct_split.append(" " + character)
 		else: 
 			punct_split.append(character)
-	data_notags_nopunct = ("".join(punct_split))
+	data_notags_punctsplit = ("".join(punct_split))
 
 	double_spacing = re.compile(r"\s+ | \n+")
-	data_notags_nopunct_nospace = double_spacing.sub(" ", data_notags_nopunct)
-	data = data_notags_nopunct_nospace
+	data_notags_punctsplit_nospace = double_spacing.sub(" ", data_notags_punctsplit)
+	data = data_notags_punctsplit_nospace
 	return(data)
 
 def retrieve_text(file): #make text string of text/xml file 
 	if file.endswith(".xml"):
 		text = clean_xml(file)
 	else:
-		text_punct = open(file, "r").read()
+		text_punct = open(file, "r", encoding='utf-8').read()
 
 		punct_list = [",",".","-","!","?",":", "(", ")"] 
 		punct_split = [] 
@@ -70,29 +69,21 @@ def collate_files(fileList):
 	else:
 		raise IOError('At least 2 files needed for collation!')
 
-"""file1 = "Guiltless_49v50.xml"
-file2 = "Guiltless_53v54.xml"
-file3 = "ch7_l30.txt"
-listOfFiles = [file1, file2, file3]
-print(collate_files(listOfFiles))"""
-
 def sorted_frequencies (frequency, fileList): #frequencydict of all files in fileList
 	freq_dict_list = []
 	text = []
+	pretty_sorted_freqs = []
 	for file in fileList:
 		currentText = retrieve_text(file).split()
-		text += currentText
-
-	#sorting and displaying the words by frequency http://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
-	sorted_freq_list = sorted(Counter(text).items(), key=itemgetter(1), reverse=True)
-
+		for word in currentText: 
+			if word not in [",",".","-","!","?",":", "(", ")"]:
+				text.append(word)
+	sorted_freq_list = sorted(Counter(text).items(), key=itemgetter(1), reverse=True) #sorting and displaying the words by frequency http://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 	for item in sorted_freq_list:
 		if item[1] >= frequency:
-			print(str(item[0]) + " : " + str(item[1]))
-
-file1 = "Guiltless_49v50.xml"
-file2 = "Guiltless_53v54.xml"
-fileList = [file1, file2]
+			pretty_freq = (str(item[0]) + " : " + str(item[1]))
+			pretty_sorted_freqs.append(pretty_freq + '\n')
+	return pretty_sorted_freqs
 
 def lowfreq_words(file):
 	lowfreqword_list = []
@@ -136,15 +127,16 @@ def print_matchsequences(fileList):
 			matchword_indices.append(text.index(matchword))
 		
 		#limiter = het woord waarrond we de zin willen bouwen (bv 5 woorden voor en na de limiter tonen)
-		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first iteration
+		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first 
+		idx = 20
 		for index in matchword_indices:
-			if index < 10:
-				limiter = 10
-			elif index+10 >= len(text):
-				limiter = len(text)-11
+			if index < idx:
+				limiter = idx
+			elif index+idx >= len(text):
+				limiter = len(text)-(idx+1)
 			else:
 				limiter = index
-			currMatchsequence.append(" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
+			currMatchsequence.append(" ".join(text[(limiter-idx):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+idx)]) + " (Index : " + str(index) + ")")
 		matchsequences.append(currMatchsequence) #after 2 iterations, this list will contain 2 lists with the matchsequences of both files.
 	#print(matchsequences)
 	i = 0
@@ -153,8 +145,6 @@ def print_matchsequences(fileList):
 		i += 1
 	return prettysequences
 #print_matchsequences(fileList)
-
-
 #print(match_sequences(fileList))
 
 def find_word_in_files (input_word, fileList):
@@ -189,7 +179,6 @@ def find_word_in_files (input_word, fileList):
 #function for doing something with del/add tags 
 """<del type=[^>]*>([^<]*?)</del>
 <add type=[^>]*>([^<]*?)</add>"""
-
 
 #main menu functions below this line
 
@@ -228,7 +217,6 @@ def filePicker(maxFiles):
 
 		print(fileList)
 		return(fileList)
-
 
 
 def menuFunctions(choice):
@@ -270,13 +258,13 @@ def menuFunctions(choice):
 	elif choice == 4:
 		print("Give frequencies of all words (together) in given files.")
 		frequency = int(input("Enter the minimal occurences for a word (min. frequency) here: "))
-		fileList = filePicker(0)
-		print(sorted_frequencies (frequency, fileList))
+		fileList = filePicker(0) #if you pick multiple files, this function takes the frequency of the words of the # files together. 
+		print(sorted_frequencies(frequency, fileList))
 		
 
 def mainMenu(errorMessage):
     cls()
-    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give frequencies of all words (together) in given files. \n\tOutput: sorted frequencies")
+    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files (& index)\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give frequencies of all words (together) in given files. \n\tOutput: sorted frequencies")
     
     #als er een errormessage wordt meegegeven aan de functie wordt deze getoond.
     if errorMessage:
@@ -303,5 +291,4 @@ def returnToMenu():
 	input("\nPress return when you want to return to the main menu.")
 	mainMenu("Welcome back.")
 	
-
 mainMenu("")
