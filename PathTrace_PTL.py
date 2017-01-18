@@ -22,11 +22,14 @@ def clean_xml(filename):
 	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
 	data_notags = dirt.sub(" ", notags)
 
-	punct_list = [",",".","-","!","?",":", "(", ")"] 
+	punct_list = [",",".","-","!","?",":", "(", ")"]
+	bracketdash = ["(" , "-"] 
 	punct_split = [] 
 	for character in data_notags: 
 		if character in punct_list: 
 			punct_split.append(" " + character)
+		elif character in bracketdash:
+			punct.split.append(character + " ")
 		else: 
 			punct_split.append(character)
 	data_notags_punctsplit = ("".join(punct_split))
@@ -42,12 +45,12 @@ def retrieve_text(file): #make text string of text/xml file
 	else:
 		text_punct = open(file, "r", encoding='utf-8').read()
 		punct_list = [",",".","-","!","?",":", ")"] 
-		bracket = ["("] #only character with no space after. 
+		bracketdash = ["(" , "-"] #only character with no space after. 
 		punct_split = [] 
 		for character in text_punct: 
 			if character in punct_list: 
 				punct_split.append(" " + character)
-			elif character in bracket:
+			elif character in bracketdash:
 				punct_split.append(character + " ")
 			else:
 				punct_split.append(character)
@@ -70,24 +73,18 @@ def collate_files(fileList):
 	else:
 		raise IOError('At least 2 files needed for collation!')
 
-def sorted_frequencies (frequency, fileList): #frequencydict of all files in fileList
+def sorted_frequencies (fileList): #frequencydict of all files in fileList
 	freq_dict_list = []
 	text = []
-	pretty_sorted_freqs = []
 	for file in fileList:
 		currentText = retrieve_text(file).split()
 		for word in currentText: 
 			if word not in [",",".","-","!","?",":", "(", ")"]:
 				text.append(word)
-	sorted_freq_list = sorted(Counter(text).items(), key=itemgetter(1), reverse=True) #sorting and displaying the words by frequency http://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
-	for item in sorted_freq_list:
-					if item[1] >= frequency:
-						pretty_freq = (str(item[0]) + " : " + str(item[1]))
-						pretty_sorted_freqs.append(pretty_freq + '\n')
-	return pretty_sorted_freqs
-
-"""fileList = ["chapter7_FW.txt"]
-print(sorted_frequencies(2, fileList))"""
+	freq_dict = Counter(text)
+	for w in sorted(freq_dict, key=freq_dict.get, reverse=True):
+		freq_dict_list.append("".join(w + " : " + str(freq_dict[w]) + "\n"))
+	return freq_dict_list
 
 def lowfreq_words(file):
 	lowfreqword_list = []
@@ -264,15 +261,14 @@ def menuFunctions(choice):
 
 	elif choice == 4:
 		print("Give frequencies of all words (together) in given files.")
-		frequency = int(input("Enter the minimal occurences for a word (min. frequency) here: "))
 		fileList = filePicker(0) #if you pick multiple files, this function takes the frequency of the words of the # files together. 
-		f = open('files/sorted_frequencies.txt', 'wt', encoding='utf-8')
-		for item in sorted_frequencies(frequency,fileList):
+		f = open('files/sorted_frequencies.txt', 'wt')
+		for item in sorted_frequencies(fileList):
 			f.write(str(item))
 		print("\nI have saved the sorted frequencies of the words in " + str(fileList) + " in a file called \"sorted_frequencies.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
-		#print(sorted_frequencies(frequency, fileList))
 		f.close()
-		
+		for value in sorted_frequencies(fileList):
+			print(value)
 
 def mainMenu(errorMessage):
     cls()
