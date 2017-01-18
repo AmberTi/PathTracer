@@ -41,17 +41,18 @@ def retrieve_text(file): #make text string of text/xml file
 		text = clean_xml(file)
 	else:
 		text_punct = open(file, "r", encoding='utf-8').read()
-
-		punct_list = [",",".","-","!","?",":", "(", ")"] 
+		punct_list = [",",".","-","!","?",":", ")"] 
+		bracket = ["("] #only character with no space after. 
 		punct_split = [] 
 		for character in text_punct: 
 			if character in punct_list: 
 				punct_split.append(" " + character)
+			elif character in bracket:
+				punct_split.append(character + " ")
 			else:
 				punct_split.append(character)
 		text = ("".join(punct_split))
 	return text
-"""print(retrieve_text("ch7_l30.txt"))"""
 
 def collate_files(fileList):
 	alphabet = string.ascii_uppercase #list aplhabet capitalized
@@ -80,10 +81,13 @@ def sorted_frequencies (frequency, fileList): #frequencydict of all files in fil
 				text.append(word)
 	sorted_freq_list = sorted(Counter(text).items(), key=itemgetter(1), reverse=True) #sorting and displaying the words by frequency http://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 	for item in sorted_freq_list:
-		if item[1] >= frequency:
-			pretty_freq = (str(item[0]) + " : " + str(item[1]))
-			pretty_sorted_freqs.append(pretty_freq + '\n')
+					if item[1] >= frequency:
+						pretty_freq = (str(item[0]) + " : " + str(item[1]))
+						pretty_sorted_freqs.append(pretty_freq + '\n')
 	return pretty_sorted_freqs
+
+"""fileList = ["chapter7_FW.txt"]
+print(sorted_frequencies(2, fileList))"""
 
 def lowfreq_words(file):
 	lowfreqword_list = []
@@ -95,27 +99,28 @@ def lowfreq_words(file):
 				lowfreqword_list.append(word)
 	return lowfreqword_list
 
-def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2 ? 
-	lowfreqwords = lowfreq_words(fileList[0])
-
-	matchwords = []	
-	text = retrieve_text(fileList[1]).split()
-	for lfword in lowfreqwords:	
-		if lfword in text: 
-			matchwords.append(lfword)
-	return matchwords
-#print(lowfreq_matchwords(fileList))
-
-def match_indices(fileList): 
-	matchwords = lowfreq_matchwords(fileList)
-	matchword_indices = []
-	i = 0
-	for matchword in matchwords:
-			matchword_indices.append([matchword, [[fileList[i], (retrieve_text(fileList[i]).split()).index(matchword)],[fileList[i+1], (retrieve_text(fileList[i+1]).split()).index(matchword)]]])
-	return matchword_indices
-#print(match_indices(fileList))
+def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2 and 3 : ORDER MATTERS!!
+	matchwords_return = []
+	lowfreqwords=  lowfreq_words(fileList[0])
+	matchwords = []
+	if len(fileList) == 2:
+		text = (retrieve_text(fileList[(1)]).split())
+		for lfword in lowfreqwords:	
+			if lfword in text: 
+				matchwords.append(lfword)
+	elif len(fileList) == 3:
+		match2ndfile = []
+		text = (retrieve_text(fileList[1]).split())
+		for lfword in lowfreqwords:	
+			if lfword in text: 
+				match2ndfile.append(lfword)
+		for word in match2ndfile:
+			if word in (retrieve_text(fileList[2]).split()):
+				matchwords.append(word)
+	return (matchwords)
 
 #print for each witness the "sentence" in which the matchword (lowfreq_matchword) occurs. Result: for each matchword 2 sequences.
+
 def print_matchsequences(fileList):
 	matchsequences = [] #The list in which we will be placing the "sentences" of both files
 	prettysequences = []
@@ -127,25 +132,26 @@ def print_matchsequences(fileList):
 			matchword_indices.append(text.index(matchword))
 		
 		#limiter = het woord waarrond we de zin willen bouwen (bv 5 woorden voor en na de limiter tonen)
-		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first 
-		idx = 20
+		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first iteration
 		for index in matchword_indices:
-			if index < idx:
-				limiter = idx
-			elif index+idx >= len(text):
-				limiter = len(text)-(idx+1)
+			if index < 10:
+				limiter = 10
+			elif index+10 >= len(text):
+				limiter = len(text)-11
 			else:
 				limiter = index
-			currMatchsequence.append(" ".join(text[(limiter-idx):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+idx)]) + " (Index : " + str(index) + ")")
+			currMatchsequence.append(" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
 		matchsequences.append(currMatchsequence) #after 2 iterations, this list will contain 2 lists with the matchsequences of both files.
 	#print(matchsequences)
 	i = 0
 	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
-		prettysequences.append((matchsequences[0][i] + "\n" + matchsequences[1][i] + "\n\n")) 
-		i += 1
+		if len(fileList) == 3: #if there are 3 files in the filelist
+			prettysequences.append((matchsequences[0][i] + "\n" + matchsequences[1][i] + "\n" + matchsequences[2][i] + "\n\n")) 
+			i += 1
+		else:
+			prettysequences.append((matchsequences[0][i] + "\n" + matchsequences[1][i] + "\n\n")) 
+			i += 1
 	return prettysequences
-#print_matchsequences(fileList)
-#print(match_sequences(fileList))
 
 def find_word_in_files (input_word, fileList):
 	foundInAnyFile = False #when at least 1 word has been found in ANY file, this will be set to true
@@ -160,20 +166,21 @@ def find_word_in_files (input_word, fileList):
 			if word == input_word:
 				foundInAnyFile = True
 				foundInCurrentFile = True
-				if index < 10:
-					limiter = 10
-				elif index+10 >= len(text):
-					limiter = len(text)-11
+				x = 20 #made a variable, easy to adjust. 
+				if index < x:
+					limiter = x
+				elif index+x >= len(text):
+					limiter = len(text)-(x+1)
 				else:
 					limiter = index
-				input_word_sequence = (" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
-				found.append(["Found it! It's in" , file , "under index \"", index, "\" in the following sequence :", input_word_sequence])
+				input_word_sequence = (" ".join(text[(limiter-x):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+x)]))
+				found.append("Found it! It's in" + file + "under index \"" + str(index) + "\" in the following sequence :" + input_word_sequence)
 			index += 1
 		if not foundInCurrentFile:
 		#I used + (concatenation) instead of , here so there wouldn't be any spaces around the input_word
-				notfound.append(["Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file:" , file])
+				notfound.append("Sorry, I couldn't find the word(s) \"" + str(input_word) + "\" in the following file: " + file)
 	if not foundInAnyFile:
-		nowhere.append(["Sorry, I couldn't find the word(s) in any of the files." ])
+		nowhere.append("Sorry, I couldn't find the word(s) in any of the files.")
 	return(found, notfound, nowhere)
 
 #function for doing something with del/add tags 
@@ -233,7 +240,7 @@ def menuFunctions(choice):
 
 	elif choice == 2: #low freq comparison
 		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file.")
-		fileList = filePicker(2)
+		fileList = filePicker(0)
 		for prettyseq in print_matchsequences(fileList):
 			print(prettyseq)
 		print("\nI have saved these text fragments for you in a file called \"collate_meaningful.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
@@ -252,14 +259,19 @@ def menuFunctions(choice):
 			for line in lst:
 				print(line)
 				f.write(str(line)+ "\n")
-		print("I have saved the occurences of the word" "\"" , input_word,  "\"" "in a file called \"word_occur.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		print("\nI have saved the occurences of the word" "\"" , input_word,  "\"" "in a file called \"word_occur.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
 		f.close()
 
 	elif choice == 4:
 		print("Give frequencies of all words (together) in given files.")
 		frequency = int(input("Enter the minimal occurences for a word (min. frequency) here: "))
 		fileList = filePicker(0) #if you pick multiple files, this function takes the frequency of the words of the # files together. 
-		print(sorted_frequencies(frequency, fileList))
+		f = open('files/sorted_frequencies.txt', 'wt', encoding='utf-8')
+		for item in sorted_frequencies(frequency,fileList):
+			f.write(str(item))
+		print("\nI have saved the sorted frequencies of the words in " + str(fileList) + " in a file called \"sorted_frequencies.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		#print(sorted_frequencies(frequency, fileList))
+		f.close()
 		
 
 def mainMenu(errorMessage):
