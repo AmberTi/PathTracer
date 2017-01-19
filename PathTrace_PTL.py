@@ -15,8 +15,10 @@ def cls():
 def clean_xml(filename):
 	f = open(filename,"r", encoding='utf-8')
 	dirty_data = f.read()
+	uncleartag = re.compile(r"(<unclear>)|(</unclear>)") #within del tags, an unclear tag can occur. Delete these tags first. Otherwise unclearity is in final text.
+	dirty_data_noUnclear = uncleartag.sub(" ", dirty_data)
 	deltag = re.compile(r"<del type=[^>]*>([^<]*?)</del>")
-	no_deletion = deltag.sub("", dirty_data) #deleting all deletion tags, and everything in between open & close tag. 
+	no_deletion = deltag.sub("", dirty_data_noUnclear) #deleting all deletion tags, and everything in between open & close tag. 
 	tags = re.compile(r"<[^>]*>") #deleting (only) tags, remaining: everything in between tags. 
 	notags = tags.sub("", no_deletion) #still dirty
 	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
@@ -118,7 +120,7 @@ def lowfreq_matchwords (fileList): #are lowfreqwords from witness 1 in witness 2
 
 #print for each witness the "sentence" in which the matchword (lowfreq_matchword) occurs. Result: for each matchword 2 sequences.
 
-def print_matchsequences(fileList):
+def print_matchsequences(fileList): #can consist of either 2 or 3 files. 
 	matchsequences = [] #The list in which we will be placing the "sentences" of both files
 	prettysequences = []
 	matchwords = lowfreq_matchwords(fileList)
@@ -130,14 +132,15 @@ def print_matchsequences(fileList):
 		
 		#limiter = het woord waarrond we de zin willen bouwen (bv 5 woorden voor en na de limiter tonen)
 		currMatchsequence = [] #list for the matchsequences of the current file, emptying needed after first iteration
+		x = 10 
 		for index in matchword_indices:
-			if index < 10:
-				limiter = 10
-			elif index+10 >= len(text):
-				limiter = len(text)-11
+			if index < x:
+				limiter = x
+			elif index+x >= len(text):
+				limiter = len(text)-(x+1)
 			else:
 				limiter = index
-			currMatchsequence.append(" ".join(text[(limiter-10):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+10)]))
+			currMatchsequence.append(" ".join(text[(limiter-x):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+x)]))
 		matchsequences.append(currMatchsequence) #after 2 iterations, this list will contain 2 lists with the matchsequences of both files.
 	#print(matchsequences)
 	i = 0
@@ -180,11 +183,84 @@ def find_word_in_files (input_word, fileList):
 		nowhere.append("Sorry, I couldn't find the word(s) in any of the files.")
 	return(found, notfound, nowhere)
 
-#function for doing something with del/add tags 
-"""<del type=[^>]*>([^<]*?)</del>
-<add type=[^>]*>([^<]*?)</add>"""
+def ReOccuringDeletions(fileList): #with file1 being the file you take the deletions from and file 2 the file you want to check on dels. 
+	f = open(fileList[0] , "rt")
+	text = f.read()
+	deletions_withtags = []
+	deletions_notags = []
+	delword_2ndoccur = []
+	givenlength = 6 # = minimum length of deleted word. Easier to adjust when in variable
 
-#main menu functions below this line
+	amp = re.compile(r"&amp;")
+	noamp = amp.sub(" " , text)
+	deltag_regex = re.compile(r"(<del type=[^>]*>([^<]*?)</del>)")
+	deletions_withtags = deltag_regex.findall(noamp) #forms list of (mini)tuples	
+
+	for minitup in deletions_withtags:
+		deletions_notags.append(" ".join(minitup[1].split())) #adding what's between deletion tags. 
+
+	#TEXT FILE 1 : CLEAN XML, BUT KEEP DELETIONS : WANT THE ORIGINAL SEQUENCE OF DELWORD
+	uncleartag = re.compile(r"(<unclear>)|(</unclear>)") #within del tags, an unclear tag can occur. Delete these tags first. Otherwise unclearity is in final text.
+	dirty_data_noUnclear = uncleartag.sub(" ", text) 
+	tags = re.compile(r"<[^>]*>") #deleting (only) tags, remaining: everything in between tags. 
+	notags = tags.sub("", dirty_data_noUnclear) #still dirty
+	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
+	data_notags = dirt.sub(" ", notags)
+	punct_list = [",",".","-","!","?",":", "(", ")"]
+	bracketdash = ["(" , "-"] 
+	punct_split = [] 
+	for character in data_notags: 
+		if character in punct_list: 
+			punct_split.append(" " + character)
+		elif character in bracketdash:
+			punct.split.append(character + " ")
+		else: 
+			punct_split.append(character)
+	data_notags_punctsplit = ("".join(punct_split))
+	double_spacing = re.compile(r"\s+ | \n+")
+	data_notags_punctsplit_nospace = double_spacing.sub(" ", data_notags_punctsplit)
+	textf1 = data_notags_punctsplit_nospace.split()
+
+	#TEXT FILE 2
+	textf2 = retrieve_text(fileList[1]).split()
+
+	for item in deletions_notags: #item = string
+		if len(item) >= givenlength: #shorter words will re-occur. My assumption: the longer the word, the more 'meaningful'(?)
+			if item in textf2:
+				delword_2ndoccur.append(item)
+		else:
+			pass
+
+	currMatchsequence = []
+	matchsequences = []
+	prettysequences = []
+	textlist = [textf1 , textf2]
+	delword_indices = []
+	delwordallind = []
+
+	for text in textlist:
+		for delword in delword_2ndoccur:
+			delword_indices.append(text.index(delword))
+		delwordallind.append(delword_indices)
+		x = 10 
+		for lst in delwordallind:
+			for index in delword_indices:
+				if index < x:
+					limiter = x
+				elif index+x >= len(text):
+					limiter = len(text)-(x+1)
+				else:
+					limiter = index
+				currMatchsequence.append(" ".join(text[(limiter-x):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+x)]))
+			matchsequences.append(currMatchsequence) 	
+	i = 0
+	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
+		prettysequences.append(str(matchsequences[0][i]) + "\n" + str(matchsequences[1][i])) 
+		i += 1
+	return prettysequences
+
+"""fileList = ["REDBACKED.xml" , "REDBACKED.xml"]
+print(ReOccuringDeletions(fileList))"""
 
 def showCurrentDir():
 	i = 1 #to easily select files
@@ -270,28 +346,53 @@ def menuFunctions(choice):
 		for value in sorted_frequencies(fileList):
 			print(value)
 
+	elif choice == 5:
+		print("Retrieve text from input file(s). (presumably .xml)")
+		fileList = filePicker(0)
+		f = open('files/retrieved_text.txt', 'wt')
+		for file in fileList:
+			f.write("".join("Text from " + (file) + " : \n" + retrieve_text(file) + "\n\n"))
+			print(("Text from " + (file) + " : \n" + retrieve_text(file) + "\n\n"))
+		print("\nI have saved the retrieved text(s) in " + str(fileList) + " in a file called \"retrieved.text.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		f.close()
+
+	elif choice == 6:
+		print("Re-occurring deletions: search for words that have been deleted. Do they reappear somewhere else?")
+		fileList = filePicker(2)
+		f = open('files/reoccuring_deletions.txt', 'wt')
+		print(("The re-occurrence of deletions in file " + str(fileList[0]) + " in " + str(fileList[1]) + ":" + "\n"))
+		f.write("The re-occurrence of deletions in file " + str(fileList[0]) + " in " + str(fileList[1]) + ":" + "\n")
+		for item in ReOccuringDeletions(fileList):
+			print(item + "\n")
+			f.write(item + "\n")
+		print("\nI have saved the re-occurrence of deletions in " + str(fileList[0]) + " in " + str(fileList[1]) +  "in a file called \"reoccuring_deletions.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
+		
 def mainMenu(errorMessage):
     cls()
-    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files (& index)\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give frequencies of all words (together) in given files. \n\tOutput: sorted frequencies")
-    
+    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. Collate text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files (& index)\n 3. Find given word in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give frequencies of all words (together) in given files. \n\tOutput: sorted frequencies. \n 5. Retrieve text from input file(s). (presumably .xml) \n\tOutput: 'cleaned' text (aka the text the rest of the program works with). \n 6. Re-occurring deletions: search for words that have been deleted. Do they reappear somewhere else? \n\tOutput: deletion-sequence & corresponding re-occurrence-sequence")
+   
     #als er een errormessage wordt meegegeven aan de functie wordt deze getoond.
     if errorMessage:
         print(errorMessage)
         
     #hier eventueel nog validatie insteken zodat je enkel nummers kan ingeven en geen letters
     menu_answer = input("> ")
-    menu_answer = int(menu_answer)
+    menu_answer_int = int(menu_answer) 
     
-    if menu_answer == 1:
+    if menu_answer_int == 1:
         menuFunctions(1)
-    elif menu_answer == 2:
+    elif menu_answer_int == 2:
         menuFunctions(2)
-    elif menu_answer == 3:
+    elif menu_answer_int == 3:
         menuFunctions(3)
-    elif menu_answer == 4:
+    elif menu_answer_int == 4:
     	menuFunctions(4)
+    elif menu_answer_int == 5:
+    	menuFunctions(5)
+    elif menu_answer_int == 6:
+    	menuFunctions(6)
     else:
-        mainMenu("This function does not exist (yet)! Try again.")
+    	mainMenu("This function does not exist (yet)! Try again.")
 
     returnToMenu()
     
