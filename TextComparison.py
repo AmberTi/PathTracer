@@ -309,7 +309,7 @@ def menuFunctions(choice):
 		f.close()
 
 	elif choice == 2: #low freq comparison
-		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd file.")
+		print("Collate meaningful (low-frequency) words in 1st file with (entire) 2nd (and 3rd) file.")
 		print("\nCAUTION! Order matters : \n\tfirst file chosen is the file from which lowfrequency words are retrieved. \n\tthese lowfrequency words will be searched for in second and third chosen file.")
 		fileList = filePicker(0)
 		for prettyseq in print_matchsequences(fileList):
@@ -368,7 +368,7 @@ def menuFunctions(choice):
 		
 def mainMenu(errorMessage):
     cls()
-    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. COLLATE text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. COLLATE MEANINGFUL (low-frequency) WORDS in 1st file with (entire) 2nd file. \n\tOutput: text fragments of occurence of meaningful words in both files (& index)\n 3. FIND GIVEN WORD in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give FREQUENCIES of all words (together) in given files. \n\tOutput: sorted frequencies. \n 5. RETRIEVE TEXT from input file(s). (presumably .xml) \n\tOutput: 'cleaned' text (aka the text the rest of the program works with). \n 6. RE-OCCURRING DELETIONS: search for words that have been deleted. Do they reappear somewhere else? \n\tOutput: deletion-sequence & corresponding re-occurrence-sequence")
+    print("Hi! This is Amber's program\n\nPlease choose the function you would like to run:\n 1. COLLATE text in two or more files (.xml or .txt) using CollateX. \n\tOutput: grid with word-on-word collation of text.\n 2. COLLATE MEANINGFUL (low-frequency) WORDS in 1st file with (entire) 2nd (and 3rd) file . \n\tOutput: text fragments of occurence of meaningful words in all two/three files (& index)\n 3. FIND GIVEN WORD in given file(s). \n\tOutput: file, index and text fragment where given word occurs.\n 4. Give FREQUENCIES of all words (together) in given files. \n\tOutput: sorted frequencies. \n 5. RETRIEVE TEXT from input file(s). (presumably .xml) \n\tOutput: 'cleaned' text (aka the text the rest of the program works with). \n 6. RE-OCCURRING DELETIONS: search for words that have been deleted. Do they reappear somewhere else? \n\tOutput: deletion-sequence & corresponding re-occurrence-sequence")
    
     if errorMessage: #if error, show error. 
         print(errorMessage)
