@@ -7,7 +7,7 @@ This program can be used to compare different text-editions, or, more specifical
 "TextComparison" consists of 6 modules of tests that can be runned on two or more versions of one manuscript (or text).  
 
 
-### Modules/function
+### Modules/functions
 
 The program offers 6 modules/functions:
 
