@@ -183,84 +183,93 @@ def find_word_in_files (input_word, fileList):
 		nowhere.append("Sorry, I couldn't find the word(s) in any of the files.")
 	return(found, notfound, nowhere)
 
+
+
+
 def ReOccuringDeletions(fileList): #with file1 being the file you take the deletions from and file 2 the file you want to check on dels. 
 	f = open(fileList[0] , "rt")
 	text = f.read()
-	deletions_withtags = []
-	deletions_notags = []
-	delword_2ndoccur = []
-	givenlength = 6 # = minimum length of deleted word. Easier to adjust when in variable
+	deletions = []
+	lengthyDeletions = []
+	returningDelword = []
+	delSequences = []
+	delword_indices = []
+	currMatchsequence = []
+	matchsequences = []
+	deletionsreoccuring = []
+	givenlength = 8 # = minimum length of deleted word. Easier to adjust when in variable
 
 	amp = re.compile(r"&amp;")
 	noamp = amp.sub(" " , text)
-	deltag_regex = re.compile(r"(<del type=[^>]*>([^<]*?)</del>)")
-	deletions_withtags = deltag_regex.findall(noamp) #forms list of (mini)tuples	
-
-	for minitup in deletions_withtags:
-		deletions_notags.append(" ".join(minitup[1].split())) #adding what's between deletion tags. 
-
-	#TEXT FILE 1 : CLEAN XML, BUT KEEP DELETIONS : WANT THE ORIGINAL SEQUENCE OF DELWORD
-	uncleartag = re.compile(r"(<unclear>)|(</unclear>)") #within del tags, an unclear tag can occur. Delete these tags first. Otherwise unclearity is in final text.
-	dirty_data_noUnclear = uncleartag.sub(" ", text) 
-	tags = re.compile(r"<[^>]*>") #deleting (only) tags, remaining: everything in between tags. 
-	notags = tags.sub("", dirty_data_noUnclear) #still dirty
-	dirt = re.compile(r"(-->)| (&amp;) | (\*\s)+") #erase common dirt (*, &amp symbol, --> arrow)
-	data_notags = dirt.sub(" ", notags)
-	punct_list = [",",".","-","!","?",":", "(", ")"]
-	bracketdash = ["(" , "-"] 
-	punct_split = [] 
-	for character in data_notags: 
-		if character in punct_list: 
-			punct_split.append(" " + character)
-		elif character in bracketdash:
-			punct.split.append(character + " ")
-		else: 
-			punct_split.append(character)
-	data_notags_punctsplit = ("".join(punct_split))
-	double_spacing = re.compile(r"\s+ | \n+")
-	data_notags_punctsplit_nospace = double_spacing.sub(" ", data_notags_punctsplit)
-	textf1 = data_notags_punctsplit_nospace.split()
-
-	#TEXT FILE 2
+	deltag_regex = re.compile(r">\n*\s*([^>]*?\s*)\n*\s*\t*<del type=[^>]*>([^<]*?)</del>\n*\s*\t*<[^>]*>\n*\s*\t*([^<]*?)\n*\s*\t*<") #retrieving all text before, in between, after deltag. 
+	deletions = deltag_regex.findall(noamp) #forms list of (mini)tuples
+	for tup in deletions:
+		for string in tup:
+			"".join(string.split()) #list of tuples, each consisting of 3 strings 
+	
 	textf2 = retrieve_text(fileList[1]).split()
 
-	for item in deletions_notags: #item = string
-		if len(item) >= givenlength: #shorter words will re-occur. My assumption: the longer the word, the more 'meaningful'(?)
-			if item in textf2:
-				delword_2ndoccur.append(item)
+	for tup in deletions:
+		deleted = tup[1]
+		wordsInString = deleted.split()
+		for item in wordsInString:
+			if len(item) >= givenlength:
+				lengthyDeletions.append(item)
+
+	for tup in deletions:
+		for word in lengthyDeletions:
+			if word in tup[1]:
+				delSeq = "".join(word + " --> " + tup[0] + tup[1] + tup[2]) #highlight part that has been deleted. 
+				delSequences.append(delSeq)
+	
+	for word in lengthyDeletions:
+		if word in textf2:
+			returningDelword.append(word)
+	for delword in returningDelword:
+		delword_indices.append(textf2.index(delword))
+	x = 15 
+	for index in delword_indices:
+		if index < x:
+			limiter = x
+		elif index+x >= len(textf2):
+			limiter = len(textf2)-(x+1)
 		else:
-			pass
-
-	currMatchsequence = []
-	matchsequences = []
-	prettysequences = []
-	textlist = [textf1 , textf2]
-	delword_indices = []
-	delwordallind = []
-
-	for text in textlist:
-		for delword in delword_2ndoccur:
-			delword_indices.append(text.index(delword))
-		delwordallind.append(delword_indices)
-		x = 10 
-		for lst in delwordallind:
-			for index in delword_indices:
-				if index < x:
-					limiter = x
-				elif index+x >= len(text):
-					limiter = len(text)-(x+1)
+			limiter = index
+		currMatchsequence.append(textf2[index] + " --> " + " ".join(textf2[(limiter-x):index]) + " << " + textf2[index] + " >> " + " ".join(textf2[index+1:(limiter+x)]))
+	matchsequences.append(currMatchsequence) 
+	#print(matchsequences) #lst with list in of strings!
+	
+	for string in delSequences:
+		string = string.split()
+		for lst in matchsequences: 
+			for seqitem in lst:
+				seqitem = seqitem.split()
+				if seqitem[0] == string[0]:
+					deletionsreoccuring.append("Deleted word & sequence in " + fileList[0] + " : "+ " ".join(string))
+					deletionsreoccuring.append("Re-occurrence & sequence in " + fileList[1] + " : "+ " ".join(seqitem) + "\n\n")
 				else:
-					limiter = index
-				currMatchsequence.append(" ".join(text[(limiter-x):index]) + " < " + text[index] + " > " + " ".join(text[index+1:(limiter+x)]))
-			matchsequences.append(currMatchsequence) 	
-	i = 0
-	for seq in matchsequences[0]: #only iterate as many times as there are values in the first list (=amount of matchwords)
-		prettysequences.append(str(matchsequences[0][i]) + "\n" + str(matchsequences[1][i])) 
-		i += 1
-	return prettysequences
+					pass
+
+			"""if delword in seq:
+													print(delword)
+													print(seq)
+													deletionsreoccuring.append(seq)
+										for string in delSequences:
+											if string[0] == delword:
+												print(string[0])
+												print(delword)
+												deletionsreoccuring.append(string)
+										print(deletionsreoccuring)"""
+	return deletionsreoccuring
+		 
+	
 
 """fileList = ["REDBACKED.xml" , "REDBACKED.xml"]
-print(ReOccuringDeletions(fileList))"""
+for item in ReOccuringDeletions(fileList):
+	print(item)
+	"""
+
+
 
 def showCurrentDir():
 	i = 1 #to easily select files
@@ -363,8 +372,8 @@ def menuFunctions(choice):
 		print(("The re-occurrence of deletions in file " + str(fileList[0]) + " in " + str(fileList[1]) + ":" + "\n"))
 		f.write("The re-occurrence of deletions in file " + str(fileList[0]) + " in " + str(fileList[1]) + ":" + "\n")
 		for item in ReOccuringDeletions(fileList):
-			print(item + "\n")
-			f.write(item + "\n")
+			print(item)
+			f.write((str(item) + "\n"))
 		print("\nI have saved the re-occurrence of deletions in " + str(fileList[0]) + " in " + str(fileList[1]) +  "in a file called \"reoccuring_deletions.txt\" in the folder \"files\" in the directory of this program. You're welcome!")
 		
 def mainMenu(errorMessage):
