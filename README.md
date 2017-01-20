@@ -1,10 +1,10 @@
-## TextComparison.py : a program for manuscript & text comparison.
+## TextComparison: a program for manuscript & text comparison.
 
 ### Introduction
 
-The program "TextComparison.py" has been developed in the context of a course on "Programming for Linguistics" in the Master studies on Digital Text Analysis at the University of Antwerp. 
+The program "TextComparison" has been developed in the context of a course on "Programming for Linguistics" in the Master studies on Digital Text Analysis at the University of Antwerp. 
 This program can be used to compare different text-editions, or, more specifically, two manuscript versions. The University of Antwerp accommodates two centres for text genetics. For digitizing manuscripts (and their variety of aspects), these centres use a complex .xml structure. The .xml structures of the digitized manuscripts allow to run all sorts of tests on these manuscripts. 
-"TextComparison.py" consists of 6 modules of tests that can be runned on two or more versions of one manuscript (or text).  
+"TextComparison" consists of 6 modules of tests that can be runned on two or more versions of one manuscript (or text).  
 
 
 ### Modules/function
