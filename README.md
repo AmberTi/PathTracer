@@ -3,7 +3,7 @@
 ### Introduction
 
 The program "TextComparison" has been developed in the context of a course on "Programming for Linguistics" in the Master studies on Digital Text Analysis at the University of Antwerp. 
-This program can be used to compare different text-editions, or, more specifically, two manuscript versions. The University of Antwerp accommodates two centres for text genetics. For digitizing manuscripts (and their variety of aspects), these centres use a complex .xml structure. The .xml structures of the digitized manuscripts allow to run all sorts of tests on these manuscripts. 
+This program can be used to compare different text-editions, or, more specifically, two manuscript versions. The University of Antwerp accommodates two centres for text genetics. For digitizing manuscripts (and their variety of aspects), these centres use a complex .xml structure. The .xml structures of the digitized manuscripts allow to run all sorts of tests on these manuscripts. Due to copyrights, I cannot append the digitized manuscript to the repository. 
 "TextComparison" consists of 6 modules of tests that can be runned on two or more versions of one manuscript (or text).  
 
 
@@ -61,4 +61,4 @@ This module searches for words that have been deleted in an earlier version of a
 ### How to.. 
 
 This program runs locally. Even though it has the look & feel of a GUI, you can simply run it via your command prompt.
-The results of the modules/tests/functions will be saved automatically in the depository of the program. 
+The results of the modules/tests/functions will be saved automatically in the directory of the program. 
